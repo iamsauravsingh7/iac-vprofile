@@ -1,0 +1,59 @@
+name: "vprofile_iac"
+on: 
+  push:
+    branches:
+    - main
+    - stage
+    paths:
+    - terraform/**
+  pull_request:
+    branches:
+    - main
+    paths:
+    - terraform/**
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+  AWS_REGION: us-east-2
+  EKS_CLUSTER_NAME: gitops-eks
+
+jobs:
+  terraform:
+    name: "Apply terraform code changes"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+    steps:
+    - name: checkout the source code
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Initialize Terraform
+      id: init
+      run: terraform init -backend-config="${BUCKET_TF_STATE}"
+    
+    - name: terraform format
+      id: fmt
+      run: terraform fmt -check
+
+    - name: terraform validate
+      id: validate
+      run: terraform validate
+    
+    - name: terraform plan
+      id: plan
+      run: terraform plan -out=tfplan -input=false
+      continue-on-error: true
+
+    - name: terraform plans status
+      if: steps.plan.outcome == 'failure'
+      run: echo "Terraform Plan Failed" && cat tfplan && exit 1
+
+         
+
