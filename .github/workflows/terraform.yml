@@ -54,11 +54,11 @@ jobs:
       continue-on-error: true
 
     - name: terraform plans status
-      id: terraform_plan
       if: steps.plan.outcome == 'failure'
       run: echo "Terraform Plan Failed" && cat tfplan && exit 1
 
     - name: terraform apply
+      id: terraform_plan
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -input=false -parallelism=1 tfplan
 
@@ -77,6 +77,3 @@ jobs:
     - name: Install Ingress controller
       if: steps.terraform_apply.outcome == 'success'
       run: kubectl apply -f htts://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.0/deploy/static/provider/aws/deploy.yaml
-
-         
-
