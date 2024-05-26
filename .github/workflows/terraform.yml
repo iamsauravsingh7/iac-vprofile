@@ -57,26 +57,23 @@ jobs:
       if: steps.plan.outcome == 'failure'
       run: echo "Terraform Plan Failed" && cat tfplan && exit 1
 
-    - name: terraform destroy
-      run: terraform destroy -auto-approve
+    - name: terraform apply
+      id: terraform_apply
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve -input=false -parallelism=1 tfplan
 
-    # - name: terraform apply
-    #   id: terraform_apply
-    #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    #   run: terraform apply -auto-approve -input=false -parallelism=1 tfplan
-
-    # - name: Configure AWS Credentials
-    #   uses: aws-actions/configure-aws-credentials@v1
-    #   with:
-    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
     
-    # - name: Get Kube config file
-    #   id: kubeconfig
-    #   if : steps.terraform_apply.outcome == 'success'
-    #   run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }}
+    - name: Get Kube config file
+      id: kubeconfig
+      if : steps.terraform_apply.outcome == 'success'
+      run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }}
 
-    # - name: Install Ingress controller
-    #   if: steps.terraform_apply.outcome == 'success'
-    #   run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/aws/deploy.yaml
+    - name: Install Ingress controller
+      if: steps.terraform_apply.outcome == 'success'
+      run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/aws/deploy.yaml
