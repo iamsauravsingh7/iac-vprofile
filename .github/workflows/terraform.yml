@@ -2,8 +2,7 @@ name: "vprofile_iac"
 on: 
   push:
     branches:
-    - main
-    - stage
+    - '**'
     paths:
     - terraform/**
   pull_request:
@@ -38,7 +37,7 @@ jobs:
 
     - name: Initialize Terraform
       id: init
-      run: terraform init -backend-config=${BUCKET_TF_STATE}
+      run: terraform init -backend-config="bucket=${BUCKET_TF_STATE}"
     
     - name: terraform format
       id: fmt
