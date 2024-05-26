@@ -2,7 +2,8 @@ name: "vprofile_iac"
 on: 
   push:
     branches:
-    - '**'
+    - main 
+    - stage
     paths:
     - terraform/**
   pull_request:
