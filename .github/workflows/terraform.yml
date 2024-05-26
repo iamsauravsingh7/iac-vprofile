@@ -58,7 +58,7 @@ jobs:
       run: echo "Terraform Plan Failed" && cat tfplan && exit 1
 
     - name: terraform apply
-      id: terraform_plan
+      id: terraform_apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -input=false -parallelism=1 tfplan
 
