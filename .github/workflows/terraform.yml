@@ -48,9 +48,6 @@ jobs:
       id: validate
       run: terraform validate
     
-    - name: terraform destroy
-      run: terraform destroy -auto-approve
-    
     - name: terraform plan
       id: plan
       run: terraform plan -out=tfplan -input=false
